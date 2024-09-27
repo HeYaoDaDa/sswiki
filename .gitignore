@@ -1,0 +1,9 @@
+*
+!*.py
+!.gitignore
+!Caddyfile
+!config.json
+!favicon.png
+!index.html
+!index.md
+!navigaction.md
