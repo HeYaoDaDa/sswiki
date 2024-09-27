@@ -6,6 +6,7 @@ import pandas as pd
 
 import generate_ship
 import generate_ship_system
+import generate_hull_mod
 
 logging.basicConfig(level=logging.INFO)
 
@@ -25,8 +26,10 @@ SS_DIR = r"C:\Users\ecquaria\Documents\ss\starsector_cn"
 work_dir = os.path.dirname(os.path.abspath(__file__))
 md_hulls_dir = os.path.join(work_dir, "hulls")
 md_ship_systems_dir = os.path.join(work_dir, "shipsystems")
+md_hull_mods_dir = os.path.join(work_dir, "hullmods")
 init_folder(md_hulls_dir)
 init_folder(md_ship_systems_dir)
+init_folder(md_hull_mods_dir)
 
 descriptions_csv_path = os.path.join(SS_DIR, "data/strings/descriptions.csv")
 descriptions_csv = pd.read_csv(descriptions_csv_path)
@@ -35,6 +38,10 @@ descriptions_csv = descriptions_csv.dropna(subset=["id"])
 wing_data_csv_path = os.path.join(SS_DIR, "data/hulls/wing_data.csv")
 wing_data_csv = pd.read_csv(wing_data_csv_path)
 wing_data_csv = wing_data_csv.dropna(subset=["id"])
+
+hull_mods_csv_path = os.path.join(SS_DIR, "data/hullmods/hull_mods.csv")
+hull_mods_csv = pd.read_csv(hull_mods_csv_path)
+hull_mods_csv = hull_mods_csv.dropna(subset=["id"])
 
 ship_data_csv_path = os.path.join(SS_DIR, "data/hulls/ship_data.csv")
 ship_data_csv = pd.read_csv(ship_data_csv_path)
@@ -55,7 +62,7 @@ ship_systems_csv = pd.merge(
     on="id",
     how="left",
 )
-
+# Ship System
 ship_system_list_map = {}
 for _, ship_system in ship_systems_csv.iterrows():
     ship_system_md, ship_system_name = generate_ship_system.generate_ship_system(
@@ -68,11 +75,26 @@ for _, ship_system in ship_systems_csv.iterrows():
     with open(ship_system_file + ".md", "w", encoding="utf-8") as file:
         file.write(ship_system_md)
 with open(os.path.join(work_dir, "shipsystems.md"), "w", encoding="utf-8") as file:
-    md = '# 战术系统\n\n'
+    md = "# 战术系统\n\n"
     for key, value in ship_system_list_map.items():
         md += f"[{value}](shipsystems/{key}.md)\n"
     file.write(md)
+# Ship mod
+hull_mod_list_map = {}
+for _, hull_mod in hull_mods_csv.iterrows():
+    hull_mod_md, hull_mod_name = generate_hull_mod.generate_hull_mod(hull_mod)
 
+    hull_mod_list_map[hull_mod["id"]] = hull_mod_name
+
+    hull_mod_file = os.path.join(md_hull_mods_dir, hull_mod["id"])
+    with open(hull_mod_file + ".md", "w", encoding="utf-8") as file:
+        file.write(hull_mod_md)
+with open(os.path.join(work_dir, "hullmods.md"), "w", encoding="utf-8") as file:
+    md = "# 舰船插件\n\n"
+    for key, value in hull_mod_list_map.items():
+        md += f"[{value}](hullmods/{key}.md)\n"
+    file.write(md)
+# Ship
 (ship_dict, ship_skin_dict) = generate_ship.read_ship_jsons(
     os.path.join(SS_DIR, "data/hulls")
 )

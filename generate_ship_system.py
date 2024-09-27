@@ -40,7 +40,7 @@ def generate_ship_system(ship_systems_csv):
     down = ship_systems_csv["down"]
 
     cooldown = ship_systems_csv["cooldown"]
-    
+
     toggle = ship_systems_csv["toggle"]
 
     noDissipation = ship_systems_csv["noDissipation"]
