@@ -1,5 +1,7 @@
 *
+
 !*.py
+
 !.gitignore
 !Caddyfile
 !config.json
@@ -7,3 +9,7 @@
 !index.html
 !index.md
 !navigaction.md
+!note.txt
+
+!.vscode
+!.vscode/settings.json

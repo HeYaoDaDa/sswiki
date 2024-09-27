@@ -1,0 +1,10 @@
+{
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "pylint.args": [
+        "--disable=missing-module-docstring",
+        "--disable=missing-function-docstring",
+        "--disable=invalid-name",
+        "--disable=line-too-long"
+    ]
+}
