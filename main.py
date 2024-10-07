@@ -1,70 +1,34 @@
-import os
 import logging
-import shutil
+import os
 
 import pandas as pd
 
+import generate_hull_mod
 import generate_ship
 import generate_ship_system
-import generate_hull_mod
+import utils
+from config import SS_DIR
 
 logging.basicConfig(level=logging.INFO)
 
-
-def init_folder(folder_path):
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    for item in os.listdir(folder_path):
-        item_path = os.path.join(folder_path, item)
-        if os.path.isfile(item_path) or os.path.islink(item_path):
-            os.remove(item_path)
-        elif os.path.isdir(item_path):
-            shutil.rmtree(item_path)
-
-
-SS_DIR = r"C:\Users\ecquaria\Documents\ss\starsector_cn"
 work_dir = os.path.dirname(os.path.abspath(__file__))
 md_hulls_dir = os.path.join(work_dir, "hulls")
 md_ship_systems_dir = os.path.join(work_dir, "shipsystems")
 md_hull_mods_dir = os.path.join(work_dir, "hullmods")
-init_folder(md_hulls_dir)
-init_folder(md_ship_systems_dir)
-init_folder(md_hull_mods_dir)
+utils.init_folder(md_hulls_dir)
+utils.init_folder(md_ship_systems_dir)
+utils.init_folder(md_hull_mods_dir)
 
-descriptions_csv_path = os.path.join(SS_DIR, "data/strings/descriptions.csv")
-descriptions_csv = pd.read_csv(descriptions_csv_path)
-descriptions_csv = descriptions_csv.dropna(subset=["id"])
+descriptions_csv = utils.read_csv(os.path.join(SS_DIR, "strings/descriptions.csv"))
 
-wing_data_csv_path = os.path.join(SS_DIR, "data/hulls/wing_data.csv")
-wing_data_csv = pd.read_csv(wing_data_csv_path)
-wing_data_csv = wing_data_csv.dropna(subset=["id"])
-
-hull_mods_csv_path = os.path.join(SS_DIR, "data/hullmods/hull_mods.csv")
-hull_mods_csv = pd.read_csv(hull_mods_csv_path)
-hull_mods_csv = hull_mods_csv.dropna(subset=["id"])
-
-ship_data_csv_path = os.path.join(SS_DIR, "data/hulls/ship_data.csv")
-ship_data_csv = pd.read_csv(ship_data_csv_path)
-ship_data_csv = ship_data_csv.dropna(subset=["id"])
-ship_data_csv = pd.merge(
-    ship_data_csv,
-    descriptions_csv[descriptions_csv["type"] == "SHIP"],
-    on="id",
-    how="left",
-)
-
-ship_systems_csv_path = os.path.join(SS_DIR, "data/shipsystems/ship_systems.csv")
-ship_systems_csv = pd.read_csv(ship_systems_csv_path)
-ship_systems_csv = ship_systems_csv.dropna(subset=["id"])
-ship_systems_csv = pd.merge(
-    ship_systems_csv,
-    descriptions_csv[descriptions_csv["type"] == "SHIP_SYSTEM"],
-    on="id",
-    how="left",
-)
+ship_system_csv = utils.read_csv(os.path.join(SS_DIR, "shipsystems/ship_systems.csv"), descriptions_csv, "SHIP_SYSTEM")
+wing_data_csv = utils.read_csv(os.path.join(SS_DIR, "hulls/wing_data.csv"))
+hull_mods_csv = utils.read_csv(os.path.join(SS_DIR, "hullmods/hull_mods.csv"))
+ship_data_csv = utils.read_csv(os.path.join(SS_DIR, "hulls/ship_data.csv"), descriptions_csv, "SHIP")
+weapon_data_csv = utils.read_csv(os.path.join(SS_DIR, "weapons/weapon_data.csv"), descriptions_csv, "WEAPON")
 # Ship System
 ship_system_list_map = {}
-for _, ship_system in ship_systems_csv.iterrows():
+for _, ship_system in ship_system_csv.iterrows():
     ship_system_md, ship_system_name = generate_ship_system.generate_ship_system(
         ship_system
     )
@@ -96,7 +60,7 @@ with open(os.path.join(work_dir, "hullmods.md"), "w", encoding="utf-8") as file:
     file.write(md)
 # Ship
 (ship_dict, ship_skin_dict) = generate_ship.read_ship_jsons(
-    os.path.join(SS_DIR, "data/hulls")
+    os.path.join(SS_DIR, "hulls")
 )
 hull_list_map = {}
 for ship_id, ship_json in ship_dict.items():
@@ -107,7 +71,7 @@ for ship_id, ship_json in ship_dict.items():
     ship_data = ship_data_result.iloc[0]
     logging.info("generate ship skin:%s", ship_id)
     hull_md, hull_name = generate_ship.generate_ship(
-        ship_data, ship_json, None, ship_systems_csv
+        ship_data, ship_json, None, ship_system_csv
     )
     hull_list_map[ship_id] = hull_name
     hull_file = os.path.join(md_hulls_dir, ship_id)
@@ -125,7 +89,7 @@ for ship_id, ship_skin_json in ship_skin_dict.items():
         ship_data,
         ship_dict[base_ship_id],
         ship_skin_json,
-        ship_systems_csv,
+        ship_system_csv,
     )
     hull_list_map[ship_id] = hull_name
     hull_file = os.path.join(md_hulls_dir, ship_id)

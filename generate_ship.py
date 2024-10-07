@@ -6,7 +6,7 @@ import re
 import json5
 import pandas as pd
 
-import util
+import utils
 
 slot_size_map = {
     "SMALL": "小型",
@@ -157,7 +157,7 @@ def generate_ship(ship_data_csv, ship_json, ship_skin_json, ship_systems_csv):
     min_crew = ship_data_csv["min crew"]
 
     if is_phasecloak:
-        shield_arc = util.my_round(
+        shield_arc = utils.my_round(
             ship_data_csv["max flux"] * ship_data_csv["phase cost"]
         )
     elif have_shield:
@@ -170,11 +170,11 @@ def generate_ship(ship_data_csv, ship_json, ship_skin_json, ship_systems_csv):
     fuel = ship_data_csv["fuel"]
 
     if is_phasecloak:
-        shield_upkeep = util.my_round(
+        shield_upkeep = utils.my_round(
             ship_data_csv["max flux"] * ship_data_csv["phase upkeep"]
         )
     elif have_shield:
-        shield_upkeep = util.my_round(
+        shield_upkeep = utils.my_round(
             ship_data_csv["flux dissipation"] * ship_data_csv["shield upkeep"]
         )
     else:
@@ -205,7 +205,7 @@ def generate_ship(ship_data_csv, ship_json, ship_skin_json, ship_systems_csv):
     detection_range = ""
 
     if is_skin and "baseValueMult" in ship_skin_json:
-        base_value = util.my_round(
+        base_value = utils.my_round(
             ship_data_csv["base value"] * ship_skin_json["baseValueMult"]
         )
     else:
