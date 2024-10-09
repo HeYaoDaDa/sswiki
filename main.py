@@ -95,11 +95,7 @@ with open(os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8") as file:
         hulls_md += f"[{value}](hulls/{key}.md)\n"
     file.write(hulls_md)
 # generate page
-ship_system_list_md = """# 战术系统\n\n<div style="text-align:center;min-width:150px;min-height:0px;">"""
 for ship_system in ship_system_id_map.values():
     md_path = os.path.join(md_ship_systems_dir, ship_system.id) + ".md"
     ship_system.create_md_file(md_path)
-    ship_system_list_md += ship_system.generate_list_item()
-ship_system_list_md += "</div>"
-with open(os.path.join(work_dir, "shipsystems.md"), "w", encoding="utf-8") as file:
-    file.write(ship_system_list_md)
+ShipSystem.create_list_md_file(ship_system_id_map.values(), work_dir)

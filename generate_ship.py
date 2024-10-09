@@ -202,7 +202,7 @@ def generate_ship(ship_data_csv, ship_json, ship_skin_json, ship_system_id_map: 
     if not pd.isna(special_system_id):
         special_system_name = ship_system_id_map[special_system_id].name
         special_system_description = ship_system_id_map[special_system_id].short_description
-        ship_system_id_map[system_id].special_ships.add(ship_data_csv["id"])
+        ship_system_id_map[special_system_id].special_ships.add(ship_data_csv["id"])
 
     weapon_slot_map = {}
     if ship_json.get("weaponSlots") is not None:

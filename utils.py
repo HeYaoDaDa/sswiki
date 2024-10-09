@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+from typing import Any
 
 import json5
 import pandas as pd
@@ -66,7 +67,7 @@ def read_csv(file_path, descriptions_csv=None, des_type=None):
     return data_csv
 
 
-def read_ss_json(file_path):
+def read_ss_json(file_path) -> Any:
     with open(file_path, "r", encoding="utf-8") as f:
         file_content = f.read()
         # 分割成行，并删除每行中的#号及其后面的内容
@@ -87,5 +88,4 @@ def read_ss_json(file_path):
         ]
         # 将处理后的内容合并为一个字符串
         processed_content = "\n".join(processed_lines)
-        data = json5.loads(processed_content)
-        return data
+        return json5.loads(processed_content)
