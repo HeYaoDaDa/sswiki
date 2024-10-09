@@ -24,17 +24,27 @@ def get_description(description_csv: pd.Series) -> str:
     return description
 
 
-def split_tags(tags) -> list[str]:
-    if is_empty(tags):
-        return []
+def get_bool(s):
+    if pd.isna(s):
+        return '否'
+    elif s:
+        return '是'
     else:
-        return tags.split(", ")
+        return '否'
+
+def get_str(s):
+    if pd.isna(s):
+        return ''
+    else:
+        return s
+
 
 def get_img(img) -> str:
     if is_empty(img):
-        return '/favicon.png'
+        return "/favicon.png"
     else:
-        return '/' + img
+        return "/" + img
+
 
 def my_round(raw):
     if pd.isna(raw):
