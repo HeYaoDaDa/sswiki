@@ -1,13 +1,11 @@
 import logging
 import os
 
-import pandas as pd
-
 import generate_hull_mod
 import generate_ship
-import generate_ship_system
 import utils
 from config import SS_DIR
+from ship_system import ShipSystem
 
 logging.basicConfig(level=logging.INFO)
 
@@ -21,28 +19,24 @@ utils.init_folder(md_hull_mods_dir)
 
 descriptions_csv = utils.read_csv(os.path.join(SS_DIR, "strings/descriptions.csv"))
 
-ship_system_csv = utils.read_csv(os.path.join(SS_DIR, "shipsystems/ship_systems.csv"), descriptions_csv, "SHIP_SYSTEM")
+ship_system_csvs = utils.read_csv(
+    os.path.join(SS_DIR, "shipsystems/ship_systems.csv"),
+    descriptions_csv,
+    "SHIP_SYSTEM",
+)
 wing_data_csv = utils.read_csv(os.path.join(SS_DIR, "hulls/wing_data.csv"))
 hull_mods_csv = utils.read_csv(os.path.join(SS_DIR, "hullmods/hull_mods.csv"))
-ship_data_csv = utils.read_csv(os.path.join(SS_DIR, "hulls/ship_data.csv"), descriptions_csv, "SHIP")
-weapon_data_csv = utils.read_csv(os.path.join(SS_DIR, "weapons/weapon_data.csv"), descriptions_csv, "WEAPON")
+ship_data_csv = utils.read_csv(
+    os.path.join(SS_DIR, "hulls/ship_data.csv"), descriptions_csv, "SHIP"
+)
+weapon_data_csv = utils.read_csv(
+    os.path.join(SS_DIR, "weapons/weapon_data.csv"), descriptions_csv, "WEAPON"
+)
 # Ship System
-ship_system_list_map = {}
-for _, ship_system in ship_system_csv.iterrows():
-    ship_system_md, ship_system_name = generate_ship_system.generate_ship_system(
-        ship_system
-    )
-
-    ship_system_list_map[ship_system["id"]] = ship_system_name
-
-    ship_system_file = os.path.join(md_ship_systems_dir, ship_system["id"])
-    with open(ship_system_file + ".md", "w", encoding="utf-8") as file:
-        file.write(ship_system_md)
-with open(os.path.join(work_dir, "shipsystems.md"), "w", encoding="utf-8") as file:
-    md = "# 战术系统\n\n"
-    for key, value in ship_system_list_map.items():
-        md += f"[{value}](shipsystems/{key}.md)\n"
-    file.write(md)
+ship_system_id_map: dict[str, ShipSystem] = {}
+for _, ship_system_csv in ship_system_csvs.iterrows():
+    ship_system = ShipSystem(ship_system_csv)
+    ship_system_id_map[ship_system.id] = ship_system
 # Ship mod
 hull_mod_list_map = {}
 for _, hull_mod in hull_mods_csv.iterrows():
@@ -71,7 +65,7 @@ for ship_id, ship_json in ship_dict.items():
     ship_data = ship_data_result.iloc[0]
     logging.info("generate ship skin:%s", ship_id)
     hull_md, hull_name = generate_ship.generate_ship(
-        ship_data, ship_json, None, ship_system_csv
+        ship_data, ship_json, None, ship_system_id_map
     )
     hull_list_map[ship_id] = hull_name
     hull_file = os.path.join(md_hulls_dir, ship_id)
@@ -89,7 +83,7 @@ for ship_id, ship_skin_json in ship_skin_dict.items():
         ship_data,
         ship_dict[base_ship_id],
         ship_skin_json,
-        ship_system_csv,
+        ship_system_id_map,
     )
     hull_list_map[ship_id] = hull_name
     hull_file = os.path.join(md_hulls_dir, ship_id)
@@ -100,3 +94,11 @@ with open(os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8") as file:
     for key, value in hull_list_map.items():
         hulls_md += f"[{value}](hulls/{key}.md)\n"
     file.write(hulls_md)
+# generate page
+ship_system_list_md = "# 战术系统\n\n"
+for ship_system in ship_system_id_map.values():
+    md_path = os.path.join(md_ship_systems_dir, ship_system.id) + ".md"
+    ship_system.create_md_file(md_path)
+    ship_system_list_md += ship_system.generate_list_item()
+with open(os.path.join(work_dir, "shipsystems.md"), "w", encoding="utf-8") as file:
+    file.write(ship_system_list_md)

@@ -1,12 +1,11 @@
 import json
 import logging
 import os
-import re
 
-import json5
 import pandas as pd
 
 import utils
+from ship_system import ShipSystem
 
 slot_size_map = {
     "SMALL": "小型",
@@ -32,42 +31,22 @@ def read_ship_jsons(hulls_dir):
         for file in files:
             if file.endswith(".ship") or file.endswith(".skin"):
                 file_path = os.path.join(root, file)
-                with open(file_path, "r", encoding="utf-8") as f:
-                    file_content = f.read()
-                    # 分割成行，并删除每行中的#号及其后面的内容
-                    lines = file_content.splitlines()
-                    processed_lines = [line.split("#")[0] for line in lines if line]
-                    # 补上value处的引号
-                    processed_lines = [
-                        re.sub(
-                            r'("[\S ]+":)([_,a-z,A-Z]+)([,\}])',
-                            r'\1"\2"\3',
-                            processed_line,
-                        )
-                        for processed_line in processed_lines
-                    ]
-                    processed_lines = [
-                        re.sub(r"\[([_,a-z,A-Z]+)\]", r'["\1"]', processed_line)
-                        for processed_line in processed_lines
-                    ]
-                    # 将处理后的内容合并为一个字符串
-                    processed_content = "\n".join(processed_lines)
-                    data = json5.loads(processed_content)
-                    hull_id = data.get("hullId")
-                    skin_hull_id = data.get("skinHullId")
-                    if hull_id is not None:
-                        ship_dict[hull_id] = data
-                    elif skin_hull_id is not None:
-                        ship_skin_dict[skin_hull_id] = data
-                    else:
-                        logging.warning(
-                            "Warning: Neither 'hullId' nor 'skinHullId' found in %s",
-                            file_path,
-                        )
+                data = utils.read_ss_json(file_path)
+                hull_id = data.get("hullId")
+                skin_hull_id = data.get("skinHullId")
+                if hull_id is not None:
+                    ship_dict[hull_id] = data
+                elif skin_hull_id is not None:
+                    ship_skin_dict[skin_hull_id] = data
+                else:
+                    logging.warning(
+                        "Warning: Neither 'hullId' nor 'skinHullId' found in %s",
+                        file_path,
+                    )
     return (ship_dict, ship_skin_dict)
 
 
-def generate_ship(ship_data_csv, ship_json, ship_skin_json, ship_systems_csv):
+def generate_ship(ship_data_csv, ship_json, ship_skin_json, ship_system_id_map: dict[str, ShipSystem]):
     is_skin = ship_skin_json is not None
 
     if is_skin:
@@ -216,20 +195,14 @@ def generate_ship(ship_data_csv, ship_json, ship_skin_json, ship_systems_csv):
     system_description = ""
     special_system_description = ""
     if not pd.isna(system_id):
-        system_name = ship_systems_csv.loc[
-            ship_systems_csv["id"] == system_id, "name"
-        ].iloc[0]
-        system_description = ship_systems_csv.loc[
-            ship_systems_csv["id"] == system_id, "text3"
-        ].iloc[0]
+        system_name = ship_system_id_map[system_id].name
+        system_description = ship_system_id_map[system_id].short_description
+        ship_system_id_map[system_id].ships.add(ship_data_csv["id"])
 
     if not pd.isna(special_system_id):
-        special_system_name = ship_systems_csv.loc[
-            ship_systems_csv["id"] == special_system_id, "name"
-        ].iloc[0]
-        special_system_description = ship_systems_csv.loc[
-            ship_systems_csv["id"] == special_system_id, "text3"
-        ].iloc[0]
+        special_system_name = ship_system_id_map[special_system_id].name
+        special_system_description = ship_system_id_map[special_system_id].short_description
+        ship_system_id_map[system_id].special_ships.add(ship_data_csv["id"])
 
     weapon_slot_map = {}
     if ship_json.get("weaponSlots") is not None:
