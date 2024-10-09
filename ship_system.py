@@ -48,7 +48,8 @@ class ShipSystem:
             file.write(md)
 
     def generate_list_item(self) -> str:
-        return f"[{self.name}](shipsystems/{self.id}.md)\n"
+        md_path = f"shipsystems/{self.id}.md"
+        return f"""<div style="display:inline-block;text-align:center;min-width:150px;min-height:0px;"><div style="text-align:center;">[<div style="width:50px;display:inline-block;text-align:center"><img decoding="async"src="{self.img}"href="{md_path}"style="max-width:50px;max-height:50px;"/></div><br/>[{self.name}](shipsystems/{self.id}.md)]({md_path})</div></div>"""
 
     def __generate_md(self) -> str:
         result = ""
