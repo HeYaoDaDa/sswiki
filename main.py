@@ -5,6 +5,7 @@ import generate_hull_mod
 import generate_ship
 import utils
 from config import SS_DIR
+from ship import Ship
 from ship_system import ShipSystem
 
 logging.basicConfig(level=logging.INFO)
@@ -53,6 +54,8 @@ with open(os.path.join(work_dir, "hullmods.md"), "w", encoding="utf-8") as file:
         md += f"[{value}](hullmods/{key}.md)\n"
     file.write(md)
 # Ship
+ship_id_map: dict[str, Ship] = {}
+#
 (ship_dict, ship_skin_dict) = generate_ship.read_ship_jsons(
     os.path.join(SS_DIR, "hulls")
 )
@@ -64,13 +67,8 @@ for ship_id, ship_json in ship_dict.items():
         continue
     ship_data = ship_data_result.iloc[0]
     logging.info("generate ship skin:%s", ship_id)
-    hull_md, hull_name = generate_ship.generate_ship(
-        ship_data, ship_json, None, ship_system_id_map
-    )
-    hull_list_map[ship_id] = hull_name
-    hull_file = os.path.join(md_hulls_dir, ship_id)
-    with open(hull_file + ".md", "w", encoding="utf-8") as file:
-        file.write(hull_md)
+    ship = Ship(ship_data, ship_json, None, ship_system_id_map)
+    ship_id_map[ship.id] = ship
 for ship_id, ship_skin_json in ship_skin_dict.items():
     base_ship_id = ship_skin_json["baseHullId"]
     ship_data_result = ship_data_csv.loc[ship_data_csv["id"] == base_ship_id]
@@ -79,23 +77,15 @@ for ship_id, ship_skin_json in ship_skin_dict.items():
         continue
     ship_data = ship_data_result.iloc[0]
     logging.info("generate ship skin:%s", ship_id)
-    hull_md, hull_name = generate_ship.generate_ship(
-        ship_data,
-        ship_dict[base_ship_id],
-        ship_skin_json,
-        ship_system_id_map,
-    )
-    hull_list_map[ship_id] = hull_name
-    hull_file = os.path.join(md_hulls_dir, ship_id)
-    with open(hull_file + ".md", "w", encoding="utf-8") as file:
-        file.write(hull_md)
-with open(os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8") as file:
-    hulls_md = "# 舰船\n\n"
-    for key, value in hull_list_map.items():
-        hulls_md += f"[{value}](hulls/{key}.md)\n"
-    file.write(hulls_md)
+    ship = Ship(ship_data, ship_dict[base_ship_id], ship_skin_json, ship_system_id_map)
+    ship_id_map[ship.id] = ship
 # generate page
 for ship_system in ship_system_id_map.values():
     md_path = os.path.join(md_ship_systems_dir, ship_system.id) + ".md"
     ship_system.create_md_file(md_path)
 ShipSystem.create_list_md_file(ship_system_id_map.values(), work_dir)
+
+for ship in ship_id_map.values():
+    md_path = os.path.join(md_hulls_dir, ship.id) + ".md"
+    ship.create_md_file(md_path)
+Ship.create_list_md_file(ship_id_map.values(), work_dir)
