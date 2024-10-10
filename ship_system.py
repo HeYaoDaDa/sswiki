@@ -3,6 +3,7 @@ from typing import Any
 
 import pandas as pd
 
+import constants
 import page_utils
 import utils
 
@@ -74,14 +75,6 @@ class ShipSystem:
         result += "\n"
         result += page_utils.generate_description(self.description, self.img)
         result += "\n"
-        if len(self.ships) > 0:
-            result += generate_ships_list("被用于战术系统", self.ships, ship_id_map)
-            result += "\n"
-        if len(self.special_ships) > 0:
-            result += generate_ships_list(
-                "被用于特殊系统", self.special_ships, ship_id_map
-            )
-            result += "\n"
         result += page_utils.generate_other_info(
             {
                 "ID": self.id,
@@ -112,6 +105,15 @@ class ShipSystem:
                 "Tags": self.tags,
             }
         )
+        result += "\n"
+        if len(self.ships) > 0:
+            result += generate_ships_list("被用于战术系统", self.ships, ship_id_map)
+            result += "\n"
+        if len(self.special_ships) > 0:
+            result += generate_ships_list(
+                "被用于特殊系统", self.special_ships, ship_id_map
+            )
+            result += "\n"
         return result
 
 
@@ -121,5 +123,16 @@ def generate_ships_list(
     ship_list_md = f"## {title}\n"
     ship_list_md += "\n"
     ships = [ship_id_map[id] for id in ship_ids if id in ship_id_map]
-    ship_list_md += page_utils.generate_ship_list_md(ships)
+    ships.sort(key=lambda ship: ship.id)
+    for size, size_str in constants.HULL_SIZE_MAP.items():
+        ships1 = [
+            (ship.name, ship.img, f"/hulls/{ship.id}.md")
+            for ship in ships
+            if ship.size == size
+        ]
+        if len(ships1) > 0:
+            ship_list_md += f"### {size_str}\n"
+            ship_list_md += "\n"
+            ship_list_md += page_utils.generate_list_md(ships1)
+            ship_list_md += "\n"
     return ship_list_md

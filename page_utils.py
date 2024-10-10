@@ -50,3 +50,15 @@ def generate_ship_list_md(ships) -> str:
 def generate_ship_list_item(ship) -> str:
     md_path = f"/hulls/{ship.id}.md"
     return f"""<div style="display:inline-block;text-align:center;min-width:150px;min-height:0px;padding-bottom:15px;"><div style="text-align:center;">[<div style="display:inline-block;text-align:center"><img decoding="async"src="{ship.img}"href="{md_path}"style="max-width:200px;max-height:200px;"/></div><br/>[{ship.name}]({md_path})]({md_path})</div></div>"""
+
+
+def generate_list_md(items: list[tuple[str, str, str]]) -> str:
+    result = """<div style="text-align:left;min-width:200px;">"""
+    for item in items:
+        result += generate_list_item(*item)
+    result += "</div>\n"
+    return result
+
+
+def generate_list_item(name: str, img: str, md_path: str) -> str:
+    return f"""<div style="display:inline-block;text-align:center;min-width:150px;padding-bottom:15px;"><div style="text-align:center;">[<div style="display:inline-block;text-align:center"><img decoding="async"src="{img}"href="{md_path}"style="max-width:200px;max-height:200px;"/></div><br/>[{name}]({md_path})]({md_path})</div></div>"""

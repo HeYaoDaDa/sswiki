@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 
+import constants
 import page_utils
 import utils
 from ship_system import ShipSystem
@@ -199,7 +200,7 @@ class Ship:
             for slot_type, slot_map in self.weapon_slot_map.items():
                 for size, num in slot_map.items():
                     self.installation_slot_list.append(
-                        f"{num}x {slot_size_map[size]}{slot_type_map[slot_type]}"
+                        f"{num}x {constants.SLOT_SIZE_MAP[size]}{constants.SLOT_TYPE_MAP[slot_type]}"
                     )
             self.installation_slot = ", ".join(self.installation_slot_list)
         if not pd.isna(self.fighter_bays) and self.fighter_bays > 0:
@@ -219,29 +220,17 @@ class Ship:
         ships.sort(key=lambda ship: ship.id)
         ship_list_md = "# 舰船 原始数据\n"
         ship_list_md += "\n"
-        ship_list_md += "## 护卫舰\n"
-        ship_list_md += "\n"
-        ship_list_md += page_utils.generate_ship_list_md(
-            [ship for ship in ships if ship.size == "FRIGATE"]
-        )
-        ship_list_md += "\n"
-        ship_list_md += "## 驱逐舰\n"
-        ship_list_md += "\n"
-        ship_list_md += page_utils.generate_ship_list_md(
-            [ship for ship in ships if ship.size == "DESTROYER"]
-        )
-        ship_list_md += "\n"
-        ship_list_md += "## 巡洋舰\n"
-        ship_list_md += "\n"
-        ship_list_md += page_utils.generate_ship_list_md(
-            [ship for ship in ships if ship.size == "CRUISER"]
-        )
-        ship_list_md += "\n"
-        ship_list_md += "## 主力舰\n"
-        ship_list_md += "\n"
-        ship_list_md += page_utils.generate_ship_list_md(
-            [ship for ship in ships if ship.size == "CAPITAL_SHIP"]
-        )
+        for size, size_str in constants.HULL_SIZE_MAP.items():
+            ships1 = [
+                (ship.name, ship.img, f"/hulls/{ship.id}.md")
+                for ship in ships
+                if ship.size == size
+            ]
+            if len(ships1) > 0:
+                ship_list_md += f"## {size_str}\n"
+                ship_list_md += "\n"
+                ship_list_md += page_utils.generate_list_md(ships1)
+                ship_list_md += "\n"
         with open(os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8") as file:
             file.write(ship_list_md)
 
@@ -262,28 +251,3 @@ def generate_detail_info(ship: Ship) -> str:
 
 <table><colgroup><col style="width: 21%;"><col style="width: 13%;"><col style="width: 20%;"><col style="width: 13%;"><col style="width: 20%;"><col style="width: 13%;"></colgroup><thead><tr><th colspan="4"style="text-align:center;">后勤数据</th><th colspan="2"style="text-align:center;">战斗性能</th></tr></thead><tbody><tr><td>作战后消耗的战备值(CR)</td><td style="text-align:right;">{ship.cr_to_deploy}%</td><td>维护消耗(补给/月)</td><td style="text-align:right;">{ship.supplies_mo}</td><td>结构值</td><td style="text-align:right;">{ship.hitpoints}</td></tr><tr><td>战备值(CR)恢复速率(每天)</td><td style="text-align:right;">{ship.cr_day}</td><td>载货量</td><td style="text-align:right;">{ship.cargo}</td><td>装甲值</td><td style="text-align:right;">{ship.armor_rating}</td></tr><tr><td>部署成本(补给)</td><td style="text-align:right;">{ship.supplies_rec}</td><td>最大载员</td><td style="text-align:right;">{ship.max_crew}</td><td>防御方式</td><td style="text-align:right;">{ship.shield_type_str}</td></tr><tr><td>部署点</td><td style="text-align:right;">{ship.supplies_rec}</td><td>必要船员</td><td style="text-align:right;">{ship.min_crew}</td><td>{ship.field1}</td><td style="text-align:right;">{ship.shield_arc}</td></tr><tr><td>峰值时间(秒)</td><td style="text-align:right;">{ship.peak_cr_sec}</td><td>燃料容量</td><td style="text-align:right;">{ship.fuel}</td><td>{ship.field2}</td><td style="text-align:right;">{ship.shield_upkeep}</td></tr><tr><td></td><td style="text-align:right;"></td><td>最大宇宙航速</td><td style="text-align:right;">{ship.max_burn}</td><td>{ship.field3}</td><td style="text-align:right;">{ship.shield_efficiency}</td></tr><tr><td></td><td style="text-align:right;"></td><td>燃料消耗(光年)</td><td style="text-align:right;">{ship.fuel_ly}</td><td>幅能容量</td><td style="text-align:right;">{ship.max_flux}</td></tr><tr><td></td><td style="text-align:right;"></td><td></td><td style="text-align:right;"></td><td>幅能耗散</td><td style="text-align:right;">{ship.flux_dissipation}</td></tr><tr><td>装配点数</td><td style="text-align:right;">{ship.ordnance_points}</td><td>被侦察范围</td><td style="text-align:right;">{ship.reconnaissance_range}</td><td>最高航速</td><td style="text-align:right;">{ship.max_speed}</td></tr><tr><td>战术系统</td><td style="text-align:right;">[{ship.system_name}](/shipsystems/{ship.system_id}.md)</td><td>探测范围</td><td style="text-align:right;">{ship.detection_range}</td><td></td><td style="text-align:right;"></td></tr><tr><td></td><td colspan="5">{ship.system_description}</td></tr><tr><td>特殊系统</td><td colspan="5">[{ship.special_system_name}](/shipsystems/{ship.special_system_id}.md)</td></tr><tr><td></td><td colspan="5">{ship.special_system_description}</td></tr><tr><td>安装槽位:</td><td colspan="5">{ship.installation_slot}</td></tr><tr><td>军备详情:</td><td colspan="5">{ship.armament_details}</td></tr><tr><td>船体插槽:</td><td colspan="5">{ship.hull_slot}</td></tr></tbody></table>
 """
-
-
-slot_size_map = {
-    "SMALL": "小型",
-    "MEDIUM": "中型",
-    "LARGE": "大型",
-}
-
-slot_type_map = {
-    "BALLISTIC": "实弹",
-    "ENERGY": "能量",
-    "MISSILE": "导弹",
-    "HYBRID": "混合",
-    "SYNERGY": "协同",
-    "COMPOSITE": "复合",
-    "UNIVERSAL": "通用",
-}
-
-hull_size_map = {
-    "FRIGATE": "护卫舰",
-    "DESTROYER": "驱逐舰",
-    "CRUISER": "巡洋舰",
-    "CAPITAL_SHIP": "主力舰",
-    "FIGHTER": "战机",
-}
