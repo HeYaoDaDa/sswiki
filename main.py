@@ -82,7 +82,7 @@ for ship_id, ship_skin_json in ship_skin_dict.items():
 # generate page
 for ship_system in ship_system_id_map.values():
     md_path = os.path.join(md_ship_systems_dir, ship_system.id) + ".md"
-    ship_system.create_md_file(md_path)
+    ship_system.create_md_file(md_path, ship_id_map)
 ShipSystem.create_list_md_file(ship_system_id_map.values(), work_dir)
 
 for ship in ship_id_map.values():

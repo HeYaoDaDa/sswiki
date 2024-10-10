@@ -213,23 +213,12 @@ class Ship:
             file.write(md)
 
     @staticmethod
-    def create_list_md_file(ship_systemd, work_dir: str) -> None:
-        ship_system_list_md = "# 战术系统\n"
-        ship_system_list_md += "\n"
-        ship_system_list_md += (
-            """<div style="text-align:left;min-width:200px;min-height:0px;">"""
-        )
-        for ship_system in ship_systemd:
-            ship_system_list_md += ship_system.generate_list_item()
-        ship_system_list_md += "</div>"
-        with open(
-            os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8"
-        ) as file:
-            file.write(ship_system_list_md)
-
-    def generate_list_item(self) -> str:
-        md_path = f"hulls/{self.id}.md"
-        return f"""<div style="display:inline-block;text-align:center;min-width:150px;min-height:0px;padding-bottom: 15px;"><div style="text-align:center;">[<div style="display:inline-block;text-align:center"><img decoding="async"src="{self.img}"href="{md_path}"style="max-width:200px;max-height:200px;"/></div><br/>[{self.name}](hulls/{self.id}.md)]({md_path})</div></div>"""
+    def create_list_md_file(ships, work_dir: str) -> None:
+        ship_list_md = "# 舰船 原始数据\n"
+        ship_list_md += "\n"
+        ship_list_md = page_utils.generate_ship_list_md(ships)
+        with open(os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8") as file:
+            file.write(ship_list_md)
 
     def __generate_md(self) -> str:
         result = ""
@@ -237,8 +226,17 @@ class Ship:
         result += "\n"
         result += page_utils.generate_description(self.description, self.img)
         result += "\n"
+        result += generate_detail_info(self)
+        result += "\n"
         result += page_utils.generate_other_info({})
         return result
+
+
+def generate_detail_info(ship: Ship) -> str:
+    return f"""## 详细信息
+
+<table><colgroup><col style="width: 21%;"><col style="width: 13%;"><col style="width: 20%;"><col style="width: 13%;"><col style="width: 20%;"><col style="width: 13%;"></colgroup><thead><tr><th colspan="4"style="text-align:center;">后勤数据</th><th colspan="2"style="text-align:center;">战斗性能</th></tr></thead><tbody><tr><td>作战后消耗的战备值(CR)</td><td style="text-align:right;">{ship.cr_to_deploy}%</td><td>维护消耗(补给/月)</td><td style="text-align:right;">{ship.supplies_mo}</td><td>结构值</td><td style="text-align:right;">{ship.hitpoints}</td></tr><tr><td>战备值(CR)恢复速率(每天)</td><td style="text-align:right;">{ship.cr_day}</td><td>载货量</td><td style="text-align:right;">{ship.cargo}</td><td>装甲值</td><td style="text-align:right;">{ship.armor_rating}</td></tr><tr><td>部署成本(补给)</td><td style="text-align:right;">{ship.supplies_rec}</td><td>最大载员</td><td style="text-align:right;">{ship.max_crew}</td><td>防御方式</td><td style="text-align:right;">{ship.shield_type_str}</td></tr><tr><td>部署点</td><td style="text-align:right;">{ship.supplies_rec}</td><td>必要船员</td><td style="text-align:right;">{ship.min_crew}</td><td>{ship.field1}</td><td style="text-align:right;">{ship.shield_arc}</td></tr><tr><td>峰值时间(秒)</td><td style="text-align:right;">{ship.peak_cr_sec}</td><td>燃料容量</td><td style="text-align:right;">{ship.fuel}</td><td>{ship.field2}</td><td style="text-align:right;">{ship.shield_upkeep}</td></tr><tr><td></td><td style="text-align:right;"></td><td>最大宇宙航速</td><td style="text-align:right;">{ship.max_burn}</td><td>{ship.field3}</td><td style="text-align:right;">{ship.shield_efficiency}</td></tr><tr><td></td><td style="text-align:right;"></td><td>燃料消耗(光年)</td><td style="text-align:right;">{ship.fuel_ly}</td><td>幅能容量</td><td style="text-align:right;">{ship.max_flux}</td></tr><tr><td></td><td style="text-align:right;"></td><td></td><td style="text-align:right;"></td><td>幅能耗散</td><td style="text-align:right;">{ship.flux_dissipation}</td></tr><tr><td>装配点数</td><td style="text-align:right;">{ship.ordnance_points}</td><td>被侦察范围</td><td style="text-align:right;">{ship.reconnaissance_range}</td><td>最高航速</td><td style="text-align:right;">{ship.max_speed}</td></tr><tr><td>战术系统</td><td style="text-align:right;">[{ship.system_name}](/shipsystems/{ship.system_id}.md)</td><td>探测范围</td><td style="text-align:right;">{ship.detection_range}</td><td></td><td style="text-align:right;"></td></tr><tr><td></td><td colspan="5">{ship.system_description}</td></tr><tr><td>特殊系统</td><td colspan="5">[{ship.special_system_name}](/shipsystems/{ship.special_system_id}.md)</td></tr><tr><td></td><td colspan="5">{ship.special_system_description}</td></tr><tr><td>安装槽位:</td><td colspan="5">{ship.installation_slot}</td></tr><tr><td>军备详情:</td><td colspan="5">{ship.armament_details}</td></tr><tr><td>船体插槽:</td><td colspan="5">{ship.hull_slot}</td></tr></tbody></table>
+"""
 
 
 slot_size_map = {

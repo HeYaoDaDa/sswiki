@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import pandas as pd
 
@@ -43,19 +44,19 @@ class ShipSystem:
         self.ships = set()
         self.special_ships = set()
 
-    def create_md_file(self, md_path: str) -> None:
-        md = self.__generate_md()
+    def create_md_file(self, md_path: str, ship_id_map: dict[str, Any]) -> None:
+        md = self.__generate_md(ship_id_map)
         with open(md_path, "w", encoding="utf-8") as file:
             file.write(md)
 
     @staticmethod
-    def create_list_md_file(ship_systemd, work_dir: str) -> None:
+    def create_list_md_file(ship_systems, work_dir: str) -> None:
         ship_system_list_md = "# 战术系统\n"
         ship_system_list_md += "\n"
         ship_system_list_md += (
             """<div style="text-align:left;min-width:150px;min-height:0px;">"""
         )
-        for ship_system in ship_systemd:
+        for ship_system in ship_systems:
             ship_system_list_md += ship_system.generate_list_item()
         ship_system_list_md += "</div>"
         with open(
@@ -65,14 +66,22 @@ class ShipSystem:
 
     def generate_list_item(self) -> str:
         md_path = f"shipsystems/{self.id}.md"
-        return f"""<div style="display:inline-block;text-align:center;min-width:150px;min-height:0px;padding-bottom: 15px;"><div style="text-align:center;">[<div style="width:50px;display:inline-block;text-align:center"><img decoding="async"src="{self.img}"href="{md_path}"style="max-width:50px;max-height:50px;"/></div><br/>[{self.name}](shipsystems/{self.id}.md)]({md_path})</div></div>"""
+        return f"""<div style="display:inline-block;text-align:center;min-width:150px;min-height:0px;padding-bottom: 15px;"><div style="text-align:center;">[<div style="width:50px;display:inline-block;text-align:center"><img decoding="async"src="{self.img}"href="{md_path}"style="max-width:50px;max-height:50px;"/></div><br/>[{self.name}]({md_path})]({md_path})</div></div>"""
 
-    def __generate_md(self) -> str:
+    def __generate_md(self, ship_id_map: dict[str, Any]) -> str:
         result = ""
         result += f"# {self.name}\n"
         result += "\n"
         result += page_utils.generate_description(self.description, self.img)
         result += "\n"
+        if len(self.ships) > 0:
+            result += generate_ships_list("被用于战术系统", self.ships, ship_id_map)
+            result += "\n"
+        if len(self.special_ships) > 0:
+            result += generate_ships_list(
+                "被用于特殊系统", self.special_ships, ship_id_map
+            )
+            result += "\n"
         result += page_utils.generate_other_info(
             {
                 "ID": self.id,
@@ -104,3 +113,13 @@ class ShipSystem:
             }
         )
         return result
+
+
+def generate_ships_list(
+    title: str, ship_ids: set[str], ship_id_map: dict[str, Any]
+) -> str:
+    ship_list_md = f"## {title}\n"
+    ship_list_md += "\n"
+    ships = [ship_id_map[id] for id in ship_ids if id in ship_id_map]
+    ship_list_md += page_utils.generate_ship_list_md(ships)
+    return ship_list_md
