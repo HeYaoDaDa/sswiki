@@ -56,14 +56,14 @@ class ShipSystem:
             """<div style="text-align:left;min-width:150px;min-height:0px;">"""
         )
         for ship_system in ship_systemd:
-            ship_system_list_md += ship_system.__generate_list_item()
+            ship_system_list_md += ship_system.generate_list_item()
         ship_system_list_md += "</div>"
         with open(
             os.path.join(work_dir, "shipsystems.md"), "w", encoding="utf-8"
         ) as file:
             file.write(ship_system_list_md)
 
-    def __generate_list_item(self) -> str:
+    def generate_list_item(self) -> str:
         md_path = f"shipsystems/{self.id}.md"
         return f"""<div style="display:inline-block;text-align:center;min-width:150px;min-height:0px;padding-bottom: 15px;"><div style="text-align:center;">[<div style="width:50px;display:inline-block;text-align:center"><img decoding="async"src="{self.img}"href="{md_path}"style="max-width:50px;max-height:50px;"/></div><br/>[{self.name}](shipsystems/{self.id}.md)]({md_path})</div></div>"""
 

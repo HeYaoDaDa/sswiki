@@ -220,14 +220,14 @@ class Ship:
             """<div style="text-align:left;min-width:200px;min-height:0px;">"""
         )
         for ship_system in ship_systemd:
-            ship_system_list_md += ship_system.__generate_list_item()
+            ship_system_list_md += ship_system.generate_list_item()
         ship_system_list_md += "</div>"
         with open(
             os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8"
         ) as file:
             file.write(ship_system_list_md)
 
-    def __generate_list_item(self) -> str:
+    def generate_list_item(self) -> str:
         md_path = f"hulls/{self.id}.md"
         return f"""<div style="display:inline-block;text-align:center;min-width:150px;min-height:0px;padding-bottom: 15px;"><div style="text-align:center;">[<div style="display:inline-block;text-align:center"><img decoding="async"src="{self.img}"href="{md_path}"style="max-width:200px;max-height:200px;"/></div><br/>[{self.name}](hulls/{self.id}.md)]({md_path})</div></div>"""
 
