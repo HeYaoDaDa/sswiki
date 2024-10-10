@@ -39,26 +39,13 @@ def generate_other_info(map0: dict[str, Any]) -> str:
     return result
 
 
-def generate_ship_list_md(ships) -> str:
-    ship_list_md = """<div style="text-align:left;min-width:200px;min-height:0px;">"""
-    for ship in ships:
-        ship_list_md += generate_ship_list_item(ship)
-    ship_list_md += "</div>\n"
-    return ship_list_md
-
-
-def generate_ship_list_item(ship) -> str:
-    md_path = f"/hulls/{ship.id}.md"
-    return f"""<div style="display:inline-block;text-align:center;min-width:150px;min-height:0px;padding-bottom:15px;"><div style="text-align:center;">[<div style="display:inline-block;text-align:center"><img decoding="async"src="{ship.img}"href="{md_path}"style="max-width:200px;max-height:200px;"/></div><br/>[{ship.name}]({md_path})]({md_path})</div></div>"""
-
-
-def generate_list_md(items: list[tuple[str, str, str]]) -> str:
+def generate_list_md(items: list[tuple[str, str, str]], max_size: int) -> str:
     result = """<div style="text-align:left;min-width:200px;">"""
     for item in items:
-        result += generate_list_item(*item)
+        result += generate_list_item(*item, max_size)
     result += "</div>\n"
     return result
 
 
-def generate_list_item(name: str, img: str, md_path: str) -> str:
-    return f"""<div style="display:inline-block;text-align:center;min-width:150px;padding-bottom:15px;"><div style="text-align:center;">[<div style="display:inline-block;text-align:center"><img decoding="async"src="{img}"href="{md_path}"style="max-width:200px;max-height:200px;"/></div><br/>[{name}]({md_path})]({md_path})</div></div>"""
+def generate_list_item(name: str, img: str, md_path: str, max_size: int) -> str:
+    return f"""<div style="display:inline-block;text-align:center;min-width:150px;padding-bottom:15px;"><div style="text-align:center;">[<div style="display:inline-block;text-align:center"><img decoding="async"src="{img}"href="{md_path}"style="max-width:{max_size}px;max-height:{max_size}px;"/></div><br/>[{name}]({md_path})]({md_path})</div></div>"""

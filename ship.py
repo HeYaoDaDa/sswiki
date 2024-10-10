@@ -229,7 +229,7 @@ class Ship:
             if len(ships1) > 0:
                 ship_list_md += f"## {size_str}\n"
                 ship_list_md += "\n"
-                ship_list_md += page_utils.generate_list_md(ships1)
+                ship_list_md += page_utils.generate_list_md(ships1, 200)
                 ship_list_md += "\n"
         with open(os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8") as file:
             file.write(ship_list_md)
