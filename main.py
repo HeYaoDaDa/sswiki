@@ -38,6 +38,7 @@ ship_system_id_map: dict[str, ShipSystem] = {}
 for _, ship_system_csv in ship_system_csvs.iterrows():
     ship_system = ShipSystem(ship_system_csv)
     ship_system_id_map[ship_system.id] = ship_system
+ship_system_id_map = dict(sorted(ship_system_id_map.items(),key=lambda item: item[1].id))
 # Ship mod
 hull_mod_list_map = {}
 for _, hull_mod in hull_mods_csv.iterrows():
@@ -55,7 +56,6 @@ with open(os.path.join(work_dir, "hullmods.md"), "w", encoding="utf-8") as file:
     file.write(md)
 # Ship
 ship_id_map: dict[str, Ship] = {}
-#
 (ship_dict, ship_skin_dict) = generate_ship.read_ship_jsons(
     os.path.join(SS_DIR, "hulls")
 )
@@ -79,6 +79,7 @@ for ship_id, ship_skin_json in ship_skin_dict.items():
     logging.info("generate ship skin:%s", ship_id)
     ship = Ship(ship_data, ship_dict[base_ship_id], ship_skin_json, ship_system_id_map)
     ship_id_map[ship.id] = ship
+ship_id_map = dict(sorted(ship_id_map.items(),key=lambda item: item[1].id))
 # generate page
 for ship_system in ship_system_id_map.values():
     md_path = os.path.join(md_ship_systems_dir, ship_system.id) + ".md"

@@ -120,7 +120,6 @@ def generate_ships_list(
     ship_list_md = f"## {title}\n"
     ship_list_md += "\n"
     ships = [ship_id_map[id] for id in ship_ids if id in ship_id_map]
-    ships.sort(key=lambda ship: ship.id)
     for size, size_str in constants.HULL_SIZE_MAP.items():
         ships1 = [
             (ship.name, ship.img, f"/hulls/{ship.id}.md")

@@ -216,8 +216,6 @@ class Ship:
 
     @staticmethod
     def create_list_md_file(ships, work_dir: str) -> None:
-        ships = list(ships)
-        ships.sort(key=lambda ship: ship.id)
         ship_list_md = "# 舰船 原始数据\n"
         ship_list_md += "\n"
         for size, size_str in constants.HULL_SIZE_MAP.items():
