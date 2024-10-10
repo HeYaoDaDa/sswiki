@@ -43,7 +43,7 @@ def generate_ship_list_md(ships) -> str:
     ship_list_md = """<div style="text-align:left;min-width:200px;min-height:0px;">"""
     for ship in ships:
         ship_list_md += generate_ship_list_item(ship)
-    ship_list_md += "</div>"
+    ship_list_md += "</div>\n"
     return ship_list_md
 
 

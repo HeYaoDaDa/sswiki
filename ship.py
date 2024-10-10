@@ -33,6 +33,7 @@ class Ship:
         if utils.is_empty(self.name):
             self.name = self.id
 
+        self.size = ship_json["hullSize"]
         self.shield_type = ship_data_csv["shield type"]
         self.shield_type_str = "无盾"
         if self.shield_type == "FRONT":
@@ -214,9 +215,33 @@ class Ship:
 
     @staticmethod
     def create_list_md_file(ships, work_dir: str) -> None:
+        ships = list(ships)
+        ships.sort(key=lambda ship: ship.id)
         ship_list_md = "# 舰船 原始数据\n"
         ship_list_md += "\n"
-        ship_list_md = page_utils.generate_ship_list_md(ships)
+        ship_list_md += "## 护卫舰\n"
+        ship_list_md += "\n"
+        ship_list_md += page_utils.generate_ship_list_md(
+            [ship for ship in ships if ship.size == "FRIGATE"]
+        )
+        ship_list_md += "\n"
+        ship_list_md += "## 驱逐舰\n"
+        ship_list_md += "\n"
+        ship_list_md += page_utils.generate_ship_list_md(
+            [ship for ship in ships if ship.size == "DESTROYER"]
+        )
+        ship_list_md += "\n"
+        ship_list_md += "## 巡洋舰\n"
+        ship_list_md += "\n"
+        ship_list_md += page_utils.generate_ship_list_md(
+            [ship for ship in ships if ship.size == "CRUISER"]
+        )
+        ship_list_md += "\n"
+        ship_list_md += "## 主力舰\n"
+        ship_list_md += "\n"
+        ship_list_md += page_utils.generate_ship_list_md(
+            [ship for ship in ships if ship.size == "CAPITAL_SHIP"]
+        )
         with open(os.path.join(work_dir, "hulls.md"), "w", encoding="utf-8") as file:
             file.write(ship_list_md)
 
@@ -253,4 +278,12 @@ slot_type_map = {
     "SYNERGY": "协同",
     "COMPOSITE": "复合",
     "UNIVERSAL": "通用",
+}
+
+hull_size_map = {
+    "FRIGATE": "护卫舰",
+    "DESTROYER": "驱逐舰",
+    "CRUISER": "巡洋舰",
+    "CAPITAL_SHIP": "主力舰",
+    "FIGHTER": "战机",
 }
