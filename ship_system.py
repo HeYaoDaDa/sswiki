@@ -56,7 +56,7 @@ class ShipSystem:
         ship_system_list_md += "\n"
         ship_system_list_md += page_utils.generate_list_md(
             [
-                (ship_system.name, ship_system.img, f"/shipsystems/{ship_system.id}.md")
+                (ship_system.name, ship_system.img, f"/shipsystems/{ship_system.id}.md", "")
                 for ship_system in ship_systems
             ],
             50,
@@ -122,7 +122,7 @@ def generate_ships_list(
     ships = [ship_id_map[id] for id in ship_ids if id in ship_id_map]
     for size, size_str in constants.HULL_SIZE_MAP.items():
         ships1 = [
-            (ship.name, ship.img, f"/hulls/{ship.id}.md")
+            (ship.name, ship.img, f"/hulls/{ship.id}.md", "")
             for ship in ships
             if ship.size == size
         ]
