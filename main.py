@@ -1,11 +1,11 @@
 import logging
 import os
 
-import generate_hull_mod
 import generate_ship
 import utils
 from config import SS_DIR
 from ship import Ship
+from ship_mod import ShipMod
 from ship_system import ShipSystem
 
 logging.basicConfig(level=logging.INFO)
@@ -35,25 +35,18 @@ weapon_data_csv = utils.read_csv(
 )
 # Ship System
 ship_system_id_map: dict[str, ShipSystem] = {}
-for _, ship_system_csv in ship_system_csvs.iterrows():
-    ship_system = ShipSystem(ship_system_csv)
-    ship_system_id_map[ship_system.id] = ship_system
-ship_system_id_map = dict(sorted(ship_system_id_map.items(),key=lambda item: item[1].id))
+for _, ship_mod_csv in ship_system_csvs.iterrows():
+    ship_mod = ShipSystem(ship_mod_csv)
+    ship_system_id_map[ship_mod.id] = ship_mod
+ship_system_id_map = dict(
+    sorted(ship_system_id_map.items(), key=lambda item: item[1].id)
+)
 # Ship mod
-hull_mod_list_map = {}
-for _, hull_mod in hull_mods_csv.iterrows():
-    hull_mod_md, hull_mod_name = generate_hull_mod.generate_hull_mod(hull_mod)
-
-    hull_mod_list_map[hull_mod["id"]] = hull_mod_name
-
-    hull_mod_file = os.path.join(md_hull_mods_dir, hull_mod["id"])
-    with open(hull_mod_file + ".md", "w", encoding="utf-8") as file:
-        file.write(hull_mod_md)
-with open(os.path.join(work_dir, "hullmods.md"), "w", encoding="utf-8") as file:
-    md = "# 舰船插件\n\n"
-    for key, value in hull_mod_list_map.items():
-        md += f"[{value}](hullmods/{key}.md)\n"
-    file.write(md)
+ship_mod_id_map: dict[str, ShipMod] = {}
+for _, ship_mod_csv in hull_mods_csv.iterrows():
+    ship_mod = ShipMod(ship_mod_csv)
+    ship_mod_id_map[ship_mod.id] = ship_mod
+ship_mod_id_map = dict(sorted(ship_mod_id_map.items(), key=lambda item: item[1].id))
 # Ship
 ship_id_map: dict[str, Ship] = {}
 (ship_dict, ship_skin_dict) = generate_ship.read_ship_jsons(
@@ -79,12 +72,17 @@ for ship_id, ship_skin_json in ship_skin_dict.items():
     logging.info("generate ship skin:%s", ship_id)
     ship = Ship(ship_data, ship_dict[base_ship_id], ship_skin_json, ship_system_id_map)
     ship_id_map[ship.id] = ship
-ship_id_map = dict(sorted(ship_id_map.items(),key=lambda item: item[1].id))
+ship_id_map = dict(sorted(ship_id_map.items(), key=lambda item: item[1].id))
 # generate page
 for ship_system in ship_system_id_map.values():
     md_path = os.path.join(md_ship_systems_dir, ship_system.id) + ".md"
     ship_system.create_md_file(md_path, ship_id_map)
 ShipSystem.create_list_md_file(ship_system_id_map.values(), work_dir)
+
+for ship_mod in ship_mod_id_map.values():
+    md_path = os.path.join(md_hull_mods_dir, ship_mod.id) + ".md"
+    ship_mod.create_md_file(md_path)
+ShipMod.create_list_md_file(ship_mod_id_map.values(), work_dir)
 
 for ship in ship_id_map.values():
     md_path = os.path.join(md_hulls_dir, ship.id) + ".md"

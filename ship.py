@@ -12,7 +12,7 @@ class Ship:
 
     def __init__(
         self,
-        ship_data_csv,
+        ship_data_csv: pd.Series,
         ship_json,
         ship_skin_json,
         ship_system_id_map: dict[str, ShipSystem],
