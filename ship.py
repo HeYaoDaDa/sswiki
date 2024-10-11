@@ -5,6 +5,7 @@ import pandas as pd
 import constants
 import page_utils
 import utils
+from ship_mod import ShipMod
 from ship_system import ShipSystem
 
 
@@ -16,6 +17,7 @@ class Ship:
         ship_json,
         ship_skin_json,
         ship_system_id_map: dict[str, ShipSystem],
+        ship_mod_id_map: dict[str, ShipMod],
     ) -> None:
         self.is_skin = ship_skin_json is not None
         # id
@@ -212,8 +214,32 @@ class Ship:
         if not pd.isna(self.fighter_bays) and self.fighter_bays > 0:
             self.installation_slot += f", {round(self.fighter_bays)}x 飞行甲板"
 
+        self.builtInMods = []
+        if "builtInMods" in ship_json:
+            self.builtInMods = ship_json["builtInMods"]
+        if self.is_skin:
+            if (
+                "builtInMods" in ship_skin_json
+                and len(ship_skin_json["builtInMods"]) > 0
+            ):
+                self.builtInMods = ship_skin_json["builtInMods"]
+            if (
+                "removeBuiltInMods" in ship_skin_json
+                and len(ship_skin_json["removeBuiltInMods"]) > 0
+            ):
+                self.builtInMods = [
+                    item
+                    for item in self.builtInMods
+                    if item not in ship_skin_json["removeBuiltInMods"]
+                ]
+
+        self.builtInModsStr = ""
+        if len(self.builtInMods) > 0:
+            for mod_id in self.builtInMods:
+                mod = ship_mod_id_map[mod_id]
+                self.builtInModsStr += f"[{mod.name} ](/hullmods/{mod.id}.md)"
+
         self.armament_details = ""
-        self.hull_slot = ""
 
     def create_md_file(self, md_path: str) -> None:
         md = self.__generate_md()
@@ -264,5 +290,5 @@ class Ship:
 def generate_detail_info(ship: Ship) -> str:
     return f"""## 详细信息
 
-<table><colgroup><col style="width: 21%;"><col style="width: 13%;"><col style="width: 20%;"><col style="width: 13%;"><col style="width: 20%;"><col style="width: 13%;"></colgroup><thead><tr><th colspan="4"style="text-align:center;">后勤数据</th><th colspan="2"style="text-align:center;">战斗性能</th></tr></thead><tbody><tr><td>作战后消耗的战备值(CR)</td><td style="text-align:right;">{ship.cr_to_deploy}%</td><td>维护消耗(补给/月)</td><td style="text-align:right;">{ship.supplies_mo}</td><td>结构值</td><td style="text-align:right;">{ship.hitpoints}</td></tr><tr><td>战备值(CR)恢复速率(每天)</td><td style="text-align:right;">{ship.cr_day}</td><td>载货量</td><td style="text-align:right;">{ship.cargo}</td><td>装甲值</td><td style="text-align:right;">{ship.armor_rating}</td></tr><tr><td>部署成本(补给)</td><td style="text-align:right;">{ship.supplies_rec}</td><td>最大载员</td><td style="text-align:right;">{ship.max_crew}</td><td>防御方式</td><td style="text-align:right;">{ship.shield_type_str}</td></tr><tr><td>部署点</td><td style="text-align:right;">{ship.supplies_rec}</td><td>必要船员</td><td style="text-align:right;">{ship.min_crew}</td><td>{ship.field1}</td><td style="text-align:right;">{ship.shield_arc}</td></tr><tr><td>峰值时间(秒)</td><td style="text-align:right;">{ship.peak_cr_sec}</td><td>燃料容量</td><td style="text-align:right;">{ship.fuel}</td><td>{ship.field2}</td><td style="text-align:right;">{ship.shield_upkeep}</td></tr><tr><td></td><td style="text-align:right;"></td><td>最大宇宙航速</td><td style="text-align:right;">{ship.max_burn}</td><td>{ship.field3}</td><td style="text-align:right;">{ship.shield_efficiency}</td></tr><tr><td></td><td style="text-align:right;"></td><td>燃料消耗(光年)</td><td style="text-align:right;">{ship.fuel_ly}</td><td>幅能容量</td><td style="text-align:right;">{ship.max_flux}</td></tr><tr><td></td><td style="text-align:right;"></td><td></td><td style="text-align:right;"></td><td>幅能耗散</td><td style="text-align:right;">{ship.flux_dissipation}</td></tr><tr><td>装配点数</td><td style="text-align:right;">{ship.ordnance_points}</td><td>被侦察范围</td><td style="text-align:right;">{ship.reconnaissance_range}</td><td>最高航速</td><td style="text-align:right;">{ship.max_speed}</td></tr><tr><td>战术系统</td><td style="text-align:right;">[{ship.system_name}](/shipsystems/{ship.system_id}.md)</td><td>探测范围</td><td style="text-align:right;">{ship.detection_range}</td><td></td><td style="text-align:right;"></td></tr><tr><td></td><td colspan="5">{ship.system_description}</td></tr><tr><td>特殊系统</td><td colspan="5">[{ship.special_system_name}](/shipsystems/{ship.special_system_id}.md)</td></tr><tr><td></td><td colspan="5">{ship.special_system_description}</td></tr><tr><td>安装槽位:</td><td colspan="5">{ship.installation_slot}</td></tr><tr><td>军备详情:</td><td colspan="5">{ship.armament_details}</td></tr><tr><td>船体插槽:</td><td colspan="5">{ship.hull_slot}</td></tr></tbody></table>
+<table><colgroup><col style="width: 21%;"><col style="width: 13%;"><col style="width: 20%;"><col style="width: 13%;"><col style="width: 20%;"><col style="width: 13%;"></colgroup><thead><tr><th colspan="4"style="text-align:center;">后勤数据</th><th colspan="2"style="text-align:center;">战斗性能</th></tr></thead><tbody><tr><td>作战后消耗的战备值(CR)</td><td style="text-align:right;">{ship.cr_to_deploy}%</td><td>维护消耗(补给/月)</td><td style="text-align:right;">{ship.supplies_mo}</td><td>结构值</td><td style="text-align:right;">{ship.hitpoints}</td></tr><tr><td>战备值(CR)恢复速率(每天)</td><td style="text-align:right;">{ship.cr_day}</td><td>载货量</td><td style="text-align:right;">{ship.cargo}</td><td>装甲值</td><td style="text-align:right;">{ship.armor_rating}</td></tr><tr><td>部署成本(补给)</td><td style="text-align:right;">{ship.supplies_rec}</td><td>最大载员</td><td style="text-align:right;">{ship.max_crew}</td><td>防御方式</td><td style="text-align:right;">{ship.shield_type_str}</td></tr><tr><td>部署点</td><td style="text-align:right;">{ship.supplies_rec}</td><td>必要船员</td><td style="text-align:right;">{ship.min_crew}</td><td>{ship.field1}</td><td style="text-align:right;">{ship.shield_arc}</td></tr><tr><td>峰值时间(秒)</td><td style="text-align:right;">{ship.peak_cr_sec}</td><td>燃料容量</td><td style="text-align:right;">{ship.fuel}</td><td>{ship.field2}</td><td style="text-align:right;">{ship.shield_upkeep}</td></tr><tr><td></td><td style="text-align:right;"></td><td>最大宇宙航速</td><td style="text-align:right;">{ship.max_burn}</td><td>{ship.field3}</td><td style="text-align:right;">{ship.shield_efficiency}</td></tr><tr><td></td><td style="text-align:right;"></td><td>燃料消耗(光年)</td><td style="text-align:right;">{ship.fuel_ly}</td><td>幅能容量</td><td style="text-align:right;">{ship.max_flux}</td></tr><tr><td></td><td style="text-align:right;"></td><td></td><td style="text-align:right;"></td><td>幅能耗散</td><td style="text-align:right;">{ship.flux_dissipation}</td></tr><tr><td>装配点数</td><td style="text-align:right;">{ship.ordnance_points}</td><td>被侦察范围</td><td style="text-align:right;">{ship.reconnaissance_range}</td><td>最高航速</td><td style="text-align:right;">{ship.max_speed}</td></tr><tr><td>战术系统</td><td style="text-align:right;">[{ship.system_name}](/shipsystems/{ship.system_id}.md)</td><td>探测范围</td><td style="text-align:right;">{ship.detection_range}</td><td></td><td style="text-align:right;"></td></tr><tr><td></td><td colspan="5">{ship.system_description}</td></tr><tr><td>特殊系统</td><td colspan="5">[{ship.special_system_name}](/shipsystems/{ship.special_system_id}.md)</td></tr><tr><td></td><td colspan="5">{ship.special_system_description}</td></tr><tr><td>安装槽位:</td><td colspan="5">{ship.installation_slot}</td></tr><tr><td>军备详情:</td><td colspan="5">{ship.armament_details}</td></tr><tr><td>船体插槽:</td><td colspan="5">{ship.builtInModsStr}</td></tr></tbody></table>
 """

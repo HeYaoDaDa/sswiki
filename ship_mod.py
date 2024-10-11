@@ -10,6 +10,7 @@ class ShipMod:
     def __init__(self, ship_mod_csv: pd.Series) -> None:
         self.id = ship_mod_csv["id"]
         self.name = ship_mod_csv["name"]
+        self.ships = []
 
         self.desc = ship_mod_csv["desc"]
         self.short = ship_mod_csv["short"]
