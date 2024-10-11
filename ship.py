@@ -33,7 +33,7 @@ class Ship:
             self.name = ship_json["hullName"]
         if utils.is_empty(self.name):
             self.name = self.id
-        
+
         self.tech = utils.get_str(ship_data_csv["tech/manufacturer"])
         if self.is_skin and "tech" in ship_skin_json:
             self.tech = ship_skin_json["tech"]
@@ -230,14 +230,14 @@ class Ship:
         ship_list_md += """<script>$(document).ready(function(){$('input[type="radio"]').change(function(){var filter=$(this).val();if(filter==='all'){$('.filter').show()}else{$('.filter').hide();$('.filter.'+filter).show()}});$('input[type="radio"][value="all"]').prop('checked',true);$('.filter').show()});</script>\n"""
         ship_list_md += "\n"
         ship_list_md += "<div>"
-        ship_list_md += f"""<div style="display:inline-block;padding:5px"><input type="radio"id="all"name="tech"value="all"><label for="all">全部</label></div>"""
+        ship_list_md += """<div style="display:inline-block;padding:5px"><input type="radio"id="all"name="tech"value="all"><label for="all">全部</label></div>"""
         for tech in sorted(tech_set):
             ship_list_md += f"""<div style="display:inline-block;padding:5px"><input type="radio"id="{tech}"name="tech"value="{tech}"><label for="{tech}">{tech}</label></div>"""
         ship_list_md += "</div>\n"
         ship_list_md += "\n"
         for size, size_str in constants.HULL_SIZE_MAP.items():
             ships1 = [
-                (ship.name, ship.img, f"/hulls/{ship.id}.md", "filter "+ship.tech)
+                (ship.name, ship.img, f"/hulls/{ship.id}.md", "filter " + ship.tech)
                 for ship in ships
                 if ship.size == size
             ]
