@@ -1,7 +1,9 @@
 import os
+from typing import Any
 
 import pandas as pd
 
+import constants
 import page_utils
 import utils
 
@@ -29,7 +31,7 @@ class ShipMod:
         self.tech_manufacturer = ship_mod_csv["tech/manufacturer"]
         self.tags = ship_mod_csv["tags"]
         if not utils.is_empty(ship_mod_csv["uiTags"]):
-            self.uiTags = ship_mod_csv["uiTags"].split(', ')
+            self.uiTags = ship_mod_csv["uiTags"].split(", ")
         else:
             self.uiTags = ["无类型"]
         self.base_value = ship_mod_csv["base value"]
@@ -42,8 +44,8 @@ class ShipMod:
         self.cost_capital = ship_mod_csv["cost_capital"]
         self.script = ship_mod_csv["script"]
 
-    def create_md_file(self, md_path: str) -> None:
-        md = self.__generate_md()
+    def create_md_file(self, md_path: str, ship_id_map: dict[str, Any]) -> None:
+        md = self.__generate_md(ship_id_map)
         with open(md_path, "w", encoding="utf-8") as file:
             file.write(md)
 
@@ -65,7 +67,12 @@ class ShipMod:
         ship_mod_list_md += "\n"
         ship_mod_list_md += page_utils.generate_list_md(
             [
-                (ship_mod.name, ship_mod.img, f"/hullmods/{ship_mod.id}.md", "filter " + ' '.join(ship_mod.uiTags))
+                (
+                    ship_mod.name,
+                    ship_mod.img,
+                    f"/hullmods/{ship_mod.id}.md",
+                    "filter " + " ".join(ship_mod.uiTags),
+                )
                 for ship_mod in ship_mods
             ],
             32,
@@ -73,9 +80,32 @@ class ShipMod:
         with open(os.path.join(work_dir, "hullmods.md"), "w", encoding="utf-8") as file:
             file.write(ship_mod_list_md)
 
-    def __generate_md(self) -> str:
+    def __generate_md(self, ship_id_map: dict[str, Any]) -> str:
         result = ""
         result += f"# {self.name}\n"
         result += "\n"
         result += page_utils.generate_description(self.description, self.img)
+        result += "\n"
+        if len(self.ships) > 0:
+            result += generate_ships_list("被内置于", set(self.ships), ship_id_map)
         return result
+
+
+def generate_ships_list(
+    title: str, ship_ids: set[str], ship_id_map: dict[str, Any]
+) -> str:
+    ship_list_md = f"## {title}\n"
+    ship_list_md += "\n"
+    ships = [ship_id_map[id] for id in ship_ids if id in ship_id_map]
+    for size, size_str in constants.HULL_SIZE_MAP.items():
+        ships1 = [
+            (ship.name, ship.img, f"/hulls/{ship.id}.md", "")
+            for ship in ships
+            if ship.size == size
+        ]
+        if len(ships1) > 0:
+            ship_list_md += f"### {size_str}\n"
+            ship_list_md += "\n"
+            ship_list_md += page_utils.generate_list_md(ships1, 200)
+            ship_list_md += "\n"
+    return ship_list_md

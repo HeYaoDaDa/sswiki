@@ -70,7 +70,13 @@ for ship_id, ship_skin_json in ship_skin_dict.items():
         continue
     ship_data = ship_data_result.iloc[0]
     logging.info("generate ship skin:%s", ship_id)
-    ship = Ship(ship_data, ship_dict[base_ship_id], ship_skin_json, ship_system_id_map, ship_mod_id_map)
+    ship = Ship(
+        ship_data,
+        ship_dict[base_ship_id],
+        ship_skin_json,
+        ship_system_id_map,
+        ship_mod_id_map,
+    )
     ship_id_map[ship.id] = ship
 ship_id_map = dict(sorted(ship_id_map.items(), key=lambda item: item[1].id))
 # generate page
@@ -81,7 +87,7 @@ ShipSystem.create_list_md_file(ship_system_id_map.values(), work_dir)
 
 for ship_mod in ship_mod_id_map.values():
     md_path = os.path.join(md_hull_mods_dir, ship_mod.id) + ".md"
-    ship_mod.create_md_file(md_path)
+    ship_mod.create_md_file(md_path, ship_id_map)
 ShipMod.create_list_md_file(ship_mod_id_map.values(), work_dir)
 
 for ship in ship_id_map.values():

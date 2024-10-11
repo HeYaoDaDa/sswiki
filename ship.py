@@ -236,6 +236,7 @@ class Ship:
         self.builtInModsStr = ""
         if len(self.builtInMods) > 0:
             for mod_id in self.builtInMods:
+                ship_mod_id_map[mod_id].ships.append(self.id)
                 mod = ship_mod_id_map[mod_id]
                 self.builtInModsStr += f"[{mod.name} ](/hullmods/{mod.id}.md)"
 
